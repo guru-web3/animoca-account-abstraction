@@ -110,7 +110,6 @@ export default function ModuleCards({ client }: ModuleCardsProps) {
         KNOWN_MODULES.PASSKEY.address,
         passkeyValidator?.initData || "0x"
       );
-      console.log({txReceipt});
 
       // store webAuthnKey in localStorage
       localStorage.setItem(

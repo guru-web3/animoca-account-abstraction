@@ -70,7 +70,6 @@ export const useModules = (
               };
             }
           });
-          console.log("modules fetched");
           setInstalledModules(modules);
           updateInstalledModules(modules);
         } else {

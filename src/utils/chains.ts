@@ -31,5 +31,5 @@ export const getChainById = (chainId: number) => {
 
 export const openTransactionExplorer = (txHash: string, chainId: number) => {
   const chain = supportedChains.find(chain => chain.id === chainId);
-  window.open(`${chain?.blockExplorers.default.url}/tx/${txHash}`, "blank")
+  window.open(`${chain?.blockExplorers.default.url}/tx/${txHash}`, "_blank")
 }

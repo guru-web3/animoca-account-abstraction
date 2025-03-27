@@ -1,21 +1,17 @@
 // src/components/SignMessage.tsx
 import { useState } from "react";
-import { createPublicClient, http } from "viem";
 import { NexusClient } from "@biconomy/abstractjs";
-import { getChainById } from "../utils/chains";
 import { SpinnerIcon } from "./Icons/SpinnerIcon";
 import { useToast } from "@/providers/ToastContex";
 
 interface SignMessageProps {
   client: NexusClient | null;
-  chainId: number;
 }
 
-export default function SignMessage({ client, chainId }: SignMessageProps) {
+export default function SignMessage({ client }: SignMessageProps) {
   const [message, setMessage] = useState<string>("");
   const [signature, setSignature] = useState<string>("");
   const [signLoading, setSignLoading] = useState<boolean>(false);
-  const chainConfig = getChainById(chainId);
   const { showToast } = useToast();
 
   const handleSignMessage = async () => {
@@ -33,18 +29,6 @@ export default function SignMessage({ client, chainId }: SignMessageProps) {
       const sig = await clientWithModule.signMessage({
         message: message,
       });
-
-      const publicClient = createPublicClient({
-        chain: chainConfig,
-        transport: http(),
-      });
-      const valid = await publicClient.verifyMessage({
-        address: client.account.address,
-        message: message,
-        signature: sig,
-      });
-      console.log({ valid });
-
       setSignature(sig);
       showToast("Sign Message Successfully", "success");
     } catch (error) {

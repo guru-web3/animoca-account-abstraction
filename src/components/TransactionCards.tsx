@@ -397,7 +397,7 @@ export default function TransactionCards({
             </div>
           )}
         </div>
-        <SignMessage chainId={chainId} client={client} />
+        <SignMessage client={client} />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md transition-all hover:shadow-lg">
