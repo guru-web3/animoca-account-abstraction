@@ -55,8 +55,10 @@ Smart wallets can integrate advanced security features—such as multi-signature
 ---
 
 ## Upgrade Flow
+ref: https://github.com/bcnmy/nexus/blob/b537e0069ef1a4f5874515ce7d2b53e9ac3efb17/contracts/Nexus.sol#L318
 
 Upgrading a smart account is designed to be seamless and secure. When an upgrade is initiated, only the underlying logic (implementation contract) is changed, while the wallet’s address remains constant and all persistent state is preserved.
+<img width="1342" alt="Screenshot 2025-03-27 at 8 31 44 PM" src="https://github.com/user-attachments/assets/790444d4-bf6f-4483-b4b3-9838793bfc57" />
 
 ### Internal Function Call – `upgradeToAndCall`
 
