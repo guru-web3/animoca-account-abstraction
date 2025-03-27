@@ -12,7 +12,7 @@ interface ClientState {
 }
 
 export const useClientStore = create<ClientState>()(
-    (set, get) => ({
+    (set) => ({
         clients: null,
         loading: false,
         error: null,

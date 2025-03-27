@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Address, Chain } from "viem";
 import { createPublicClient, erc20Abi, http } from "viem";
-import type { MultichainToken } from "@biconomy/abstractjs";
 import { watchBlockNumber } from "viem/actions";
 
 interface UseERC20BalanceProps {
@@ -44,7 +43,7 @@ export function useERC20Balance({
 
     // Cleanup function to unsubscribe
     return () => unwatch();
-  }, []);
+  }, [chain]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useAccountStore } from "../store/accountStore";
 import { Hex } from "viem";
 import { useSmartAccount } from "./useSmartAccount";
-import { decryptData, encryptData } from "@/utils/encryption";
 
 export const useAuth = () => {
   const [privateKey, setPrivateKey] = useState<Hex | null>(null);
@@ -46,26 +45,10 @@ export const useAuth = () => {
     setPrivateKey(null);
   };
 
-  const encryptPasskeyWithPrivateKey = (formattedWebAuthnKey: string) => {
-    if(!privateKey) {
-      return ;
-    }
-    return encryptData(formattedWebAuthnKey, privateKey as string);
-  }
-
-  const decryptPasskeyWithPrivateKey = (encryptData: string) => {
-    if(!privateKey) {
-      return ;
-    }
-    return decryptData(encryptData, privateKey as string);
-  }
-
   return {
     isAuthenticated,
     isLoading,
     privateKey,
-    encryptPasskeyWithPrivateKey,
-    decryptPasskeyWithPrivateKey,
     login,
     createAccount,
     logout,

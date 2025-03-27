@@ -13,7 +13,6 @@ import {
 } from "viem";
 import {
   BaseModule,
-  ERC20_ABI,
   moduleActivator,
   NexusClient,
   smartSessionUseActions,
@@ -29,6 +28,7 @@ import {
 } from "@biconomy/passkey";
 import { privateKeyToAccount } from "viem/accounts";
 import Faucet from "./Faucet";
+import { SmartSessionClient } from "@/types";
 
 interface TransactionCardsProps {
   client: NexusClient | null;
@@ -67,8 +67,8 @@ export default function TransactionCards({
   const usdcAddress = chainConfig?.usdcAddress || "";
   const { balance } = useERC20Balance({
     chain: chainConfig as Chain,
-    tokenAddress: chainConfig?.usdcAddress!!,
-    address: address!!,
+    tokenAddress: chainConfig?.usdcAddress || "0x",
+    address: address || "0x",
   });
 
   // Validate recipient address when it changes
@@ -106,7 +106,8 @@ export default function TransactionCards({
         setAmountError("");
       }
     } catch (error) {
-      setAmountError("Invalid amount format");
+      const typedError = error as Error;
+      setAmountError(`Invalid amount format: ${typedError.message || JSON.stringify(typedError)}`);
     }
   }, [amount, balance]);
 
@@ -174,8 +175,6 @@ export default function TransactionCards({
       const sessionKey = privateKeyToAccount(
         "0x6f13f1ce2e98994e4bec67a9731b86acf08eda789dd686c8b77deb0f2155f396"
       );
-      const sessionsModule = localStorage.getItem("sessionModule") || "0x";
-      // let moduleData = JSON.parse(sessionsModule as string);
 
       const sessionValidator = toSmartSessionsValidator({
         account: client.account,
@@ -207,14 +206,14 @@ export default function TransactionCards({
           cachedWebAuthnKey
         );
       }
-      let deFormattedWebAuthnKey = {
+      const deFormattedWebAuthnKey = {
         pubX: BigInt(JSON.parse(cachedWebAuthnKey).pubX),
         pubY: BigInt(JSON.parse(cachedWebAuthnKey).pubY),
         authenticatorId: JSON.parse(cachedWebAuthnKey).authenticatorId,
         authenticatorIdHash: JSON.parse(cachedWebAuthnKey).authenticatorIdHash,
       };
       const passkeyValidator = await toPasskeyValidator({
-        // @ts-ignore
+        // @ts-expect-error Account type from client is not fully compatible with expected type
         account: client?.account,
         webAuthnKey: deFormattedWebAuthnKey,
       });
@@ -236,36 +235,10 @@ export default function TransactionCards({
       const amountInWei = parseUnits(amount, 6);
 
       // Get client with appropriate module
-      const clientWithModule = await getClientWithModule();
+      const clientWithModule = await getClientWithModule() as SmartSessionClient;
 
       if (!clientWithModule) {
         throw new Error("client is required for sending userops");
-      }
-      if (selectedModule?.type === "session") {
-        const userOpHash = await (clientWithModule as any).usePermission({
-          calls: [
-            {
-              to: usdcAddress as Hex,
-              data: encodeFunctionData({
-                abi: [
-                  {
-                    name: "transfer",
-                    type: "function",
-                    inputs: [
-                      { name: "to", type: "address" },
-                      { name: "value", type: "uint256" },
-                    ],
-                    outputs: [{ type: "bool" }],
-                    stateMutability: "nonpayable",
-                  },
-                ],
-                functionName: "transfer",
-                args: [recipient as Hex, amountInWei],
-              }),
-              value: BigInt(0),
-            },
-          ],
-        });
       }
       // Send transaction
       const hash = await clientWithModule.sendUserOperation({

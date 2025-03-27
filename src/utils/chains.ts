@@ -1,5 +1,5 @@
 import { Hex } from "viem";
-import { baseSepolia, sepolia, base, arbitrumSepolia } from "viem/chains";
+import { baseSepolia, sepolia, arbitrumSepolia } from "viem/chains";
 
 export const supportedChains = [
   {

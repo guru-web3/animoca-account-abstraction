@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useModules } from "../hooks/useModules";
-import { BaseModule, NexusClient, toSmartSessionsValidator } from "@biconomy/abstractjs";
+import { NexusClient, toSmartSessionsValidator } from "@biconomy/abstractjs";
 import {
   toWebAuthnKey,
   toPasskeyValidator,
@@ -8,7 +8,6 @@ import {
 } from "@biconomy/passkey";
 import { privateKeyToAccount } from "viem/accounts";
 import { waitForUserOperationReceipt } from "@/utils/biconomy";
-import { useAuth } from "@/hooks/useAuth";
 
 interface ModuleCardsProps {
   client: NexusClient | null;
@@ -24,40 +23,20 @@ export default function ModuleCards({ client }: ModuleCardsProps) {
     refreshModules,
   } = useModules(client);
 
-  const {
-    encryptPasskeyWithPrivateKey,
-    decryptPasskeyWithPrivateKey,
-  } = useAuth();
-
-  const encryptedWebAuthnKey = localStorage.getItem("webAuthnKey");
-
   useEffect(() => {
     if (client) {
       refreshModules();
     }
-  }, [client]);
-
-  useEffect(() => {
-    if(encryptedWebAuthnKey) {
-      decryptPasskeyWithPrivateKey(encryptedWebAuthnKey)
-    }
-  }, [encryptedWebAuthnKey]);
+  }, [client, refreshModules]);
 
   const [loadingPasskey, setLoadingPasskey] = useState<boolean>(false);
   const [loadingSession, setLoadingSession] = useState<boolean>(false);
-  const [passkeyValidator, setPasskeyValidator] = useState<BaseModule | null>(
-    null
-  );
-  const [activePasskeyName, setActivePasskeyName] = useState<string>("");
 
   const hasPasskeyModule = installedModules.some(
     (module) => module.address === KNOWN_MODULES.PASSKEY.address
   );
   const hasSessionModule = installedModules.some(
     (module) => module.address === KNOWN_MODULES.SESSION.address
-  );
-  const hasK1Validator = installedModules.some(
-    (module) => module.address === KNOWN_MODULES.K1.address
   );
 
   const registerPasskey = async () => {
@@ -72,7 +51,7 @@ export default function ModuleCards({ client }: ModuleCardsProps) {
       });
 
       const passkeyValidator = await toPasskeyValidator({
-        // @ts-ignore
+        // @ts-expect-error Account type from client is not fully compatible with expected type
         account: client?.account,
         webAuthnKey,
       });
@@ -92,7 +71,6 @@ export default function ModuleCards({ client }: ModuleCardsProps) {
       // store webAuthnKey in localStorage
       localStorage.setItem(`webAuthnKey_${chainId}`, JSON.stringify(formattedWebAuthnKey));
 
-      setPasskeyValidator(passkeyValidator as BaseModule);
       // toast.success(`Using passkey for ${passkeyName}`, {
       //   position: "bottom-right",
       // });
@@ -123,40 +101,7 @@ export default function ModuleCards({ client }: ModuleCardsProps) {
     const transactionReceipt = await waitForUserOperationReceipt(client, hash);
     console.log({transactionReceipt});
     refreshModules();
-    
   }
-
-  const loginPasskey = async () => {
-    try {
-      const webAuthnKey = await toWebAuthnKey({
-        mode: WebAuthnMode.Login,
-      });
-
-      const passkeyValidator = await toPasskeyValidator({
-        // @ts-ignore
-        account: client?.account,
-        webAuthnKey,
-      });
-
-      const formattedWebAuthnKey = {
-        pubX: webAuthnKey.pubX.toString(),
-        pubY: webAuthnKey.pubY.toString(),
-        authenticatorId: webAuthnKey.authenticatorId,
-        authenticatorIdHash: webAuthnKey.authenticatorIdHash,
-      };
-
-      // store webAuthnKey in localStorage
-      localStorage.setItem("webAuthnKey", JSON.stringify(formattedWebAuthnKey));
-
-      setPasskeyValidator(passkeyValidator as BaseModule);
-      // toast.success(`Using passkey for ${passkeyName}`, {
-      //   position: "bottom-right",
-      // });
-    } catch (error) {
-      console.error("Error logging in with passkey:", error);
-      // toast.error("Failed to login with passkey");
-    }
-  };
 
   const handlePasskeyModule = async () => {
     if (!client) return;

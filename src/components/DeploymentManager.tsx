@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAccountStore } from "../store/accountStore";
 import { ClientsMap, DeploymentStatus } from "../types";
 import { supportedChains } from "../utils/chains";
@@ -96,7 +96,7 @@ export default function DeploymentManager({ clients }: DeploymentManagerProps) {
     setDeployLoading(false);
   };
 
-  const fetchInit = async () => {
+  const fetchInit = useCallback(async () => {
     try {
       const deploymentPromises = supportedChains.map(async (chain) => {
         const client = clients[chain.id];
@@ -168,11 +168,11 @@ export default function DeploymentManager({ clients }: DeploymentManagerProps) {
     } finally {
       setDeployLoading(false);
     }
-  };
+  }, [clients, deployedChains, updateDeployedChains]); // Add all dependencies
 
   useEffect(() => {
     fetchInit();
-  }, []);
+  }, [clients]);
 
   return (
     <div className="mt-8">

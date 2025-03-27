@@ -1,6 +1,4 @@
-// SmartAccountUpgrader.tsx
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   createPublicClient,
   encodeFunctionData,
@@ -30,11 +28,7 @@ export default function SmartAccountUpgrader({
     Record<number, string>
   >({});
 
-  useEffect(() => {
-    fetchCurrentImplementations();
-  }, [clients]);
-
-  const fetchCurrentImplementations = async () => {
+  const fetchCurrentImplementations = useCallback(async () => {
     const implementations: Record<number, string> = {};
     for (const chain of supportedChains) {
       const client = clients[chain.id];
@@ -61,7 +55,12 @@ export default function SmartAccountUpgrader({
       }
     }
     setCurrentImplementations(implementations);
-  };
+  }, [clients]); // Add clients as dependency
+
+  useEffect(() => {
+    fetchCurrentImplementations();
+  }, [fetchCurrentImplementations]); // Update dependency array
+
 
   const upgradeImplementation = async (chainId: number) => {
     const client = clients[chainId];

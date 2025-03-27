@@ -45,7 +45,9 @@ export default function Home() {
   }
 
   const copyAddressToClipboard = () => {
-    accountAddress && navigator.clipboard.writeText(accountAddress as string);
+    if(accountAddress) {
+      navigator.clipboard.writeText(accountAddress as string);
+    }
   }
 
   return (
