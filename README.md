@@ -26,7 +26,7 @@ ERC-4337 (Account Abstraction) lays the groundwork for smart accounts that overc
 Biconomy’s Smart Account leverages deterministic deployment (via CREATE2) along with ERC-4337’s account abstraction framework. This combination guarantees that if you start with the same owner and configuration, the smart wallet address remains consistent on every EVM chain.
 
 ### Details: Deterministic Deployment with CREATE2
-
+ref: https://github.com/bcnmy/scw-contracts/blob/d3a2ee85f03d9517e3bd224842cc7a58eaf0f6ac/src/Create2Factory.ts#L13
 The deployment process uses the CREATE2 opcode, which pre-computes the address where a contract will be deployed based on:
 
 - **The Factory’s Address**  
