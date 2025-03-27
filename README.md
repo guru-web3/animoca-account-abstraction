@@ -91,7 +91,18 @@ For additional details or to explore the implementation further, please refer to
 ## Overview
 The Biconomy AA Demo is a comprehensive application that showcases account abstraction features on various blockchain networks. This demo allows users to manage passkeys, interact with smart accounts, and perform transactions across multiple chains.
 
-## Features
+# Features
+
+##Register
+- Create a new password and confirm password
+- Behind the scenes private key will be encrypted by password and `K1_Validator` account will be created
+<img width="504" alt="Screenshot 2025-03-27 at 9 47 17 PM" src="https://github.com/user-attachments/assets/2b96a5cb-90ba-4f1b-979a-709f57b72b1f" />
+
+## Login
+- Enter the saveed password and Login
+- when you refresh, logout and login - private key will be decrypted by password and `K1_Validator` account will be retained
+<img width="483" alt="Screenshot 2025-03-27 at 9 46 56 PM" src="https://github.com/user-attachments/assets/789e2b19-8a04-47a4-951d-0feabebd2e11" />
+
 
 ### 1. Passkey Management
 - Create new passkeys
@@ -129,19 +140,25 @@ The Biconomy AA Demo is a comprehensive application that showcases account abstr
 3. For Smart Session Module:
    - Click "Install Module" to enable temporary session keys
    - Click "Uninstall Module" to remove it
+<img width="1328" alt="Screenshot 2025-03-27 at 9 46 00 PM" src="https://github.com/user-attachments/assets/01a7c4d4-8371-4244-bc84-21215ef48d86" />
 
 ### Deploying Smart Accounts
 1. Go to the "Deployment" tab
 2. Select the chains you want to deploy on
 3. Click "Deploy Selected Accounts"
 4. Wait for the deployment process to complete
+<img width="1327" alt="Screenshot 2025-03-27 at 9 46 13 PM" src="https://github.com/user-attachments/assets/6c503419-e095-4e92-bc4c-f619b2b42e4d" />
 
 ### Performing Transactions
 1. Navigate to the "Transactions" tab (not shown in the provided images)
 2. Select the appropriate module for validation
 3. Enter transaction details and confirm
+<img width="1324" alt="Screenshot 2025-03-27 at 9 46 29 PM" src="https://github.com/user-attachments/assets/490c0f18-1fa6-430e-9459-65a7ad8621ee" />
+
 
 ### Upgrading Smart Account Implementation
 1. In the "Deployment" tab, find the "Upgrade/Change Smart Account Implementation" section
 2. For each deployed chain, you can see the current implementation address
 3. Click "Upgrade/Switch Implementation" to change to a different implementation version
+<img width="1260" alt="Screenshot 2025-03-27 at 9 46 39 PM" src="https://github.com/user-attachments/assets/c79b9111-9e57-4088-a9e5-abb1cbff6270" />
+
