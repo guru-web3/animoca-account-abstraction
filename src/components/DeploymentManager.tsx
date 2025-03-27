@@ -158,7 +158,6 @@ export default function DeploymentManager({ clients }: DeploymentManagerProps) {
       }
 
       updateDeployedChains(updatedDeployedChains);
-      setDeploymentStatus("Deployment completed");
 
       // Clear selection
       setSelectedChains([]);

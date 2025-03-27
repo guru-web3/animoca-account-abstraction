@@ -7,11 +7,7 @@ import {
   isAddress,
   encodeFunctionData,
 } from "viem";
-import {
-  BaseModule,
-  moduleActivator,
-  NexusClient,
-} from "@biconomy/abstractjs";
+import { BaseModule, moduleActivator, NexusClient } from "@biconomy/abstractjs";
 import { getChainById, openTransactionExplorer } from "../utils/chains";
 import { useERC20Balance } from "@/hooks/useBalanceErc20";
 import { useAccountStore } from "@/store/accountStore";
@@ -241,9 +237,15 @@ export default function TransactionCards({
           },
         ],
       });
-      const transactionReceipt = await waitForUserOperationReceipt(client, hash);
+      const transactionReceipt = await waitForUserOperationReceipt(
+        client,
+        hash
+      );
       showToast("Sent transaction successfully", "success", 3000, () => {
-        openTransactionExplorer(transactionReceipt?.receipt.transactionHash || client.account.address, chainId || 0)
+        openTransactionExplorer(
+          transactionReceipt?.receipt.transactionHash || client.account.address,
+          chainId || 0
+        );
       });
       // wait for receipt to be completed and include that in below state variable
       setTxHash(transactionReceipt?.receipt.transactionHash);
@@ -292,22 +294,24 @@ export default function TransactionCards({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Select Validation Module
               </label>
-              <select
-                value={selectedModule?.address || ""}
-                onChange={(e) => {
-                  const selected = availableModules.find(
-                    (m) => m.address === e.target.value
-                  );
-                  if (selected) setSelectedModule(selected);
-                }}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-              >
-                {availableModules.map((module) => (
-                  <option key={module.address} value={module.address}>
-                    {module.name}
-                  </option>
-                ))}
-              </select>
+              <div className="select-container">
+                <select
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  value={selectedModule?.address || ""}
+                  onChange={(e) => {
+                    const selected = availableModules.find(
+                      (m) => m.address === e.target.value
+                    );
+                    if (selected) setSelectedModule(selected);
+                  }}
+                >
+                  {availableModules.map((module) => (
+                    <option key={module.address} value={module.address}>
+                      {module.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div>

@@ -52,7 +52,6 @@ export default function Home() {
     if (accountAddress) {
       navigator.clipboard.writeText(accountAddress as string);
       showToast(`Address Copied successfully`, "success");
-
     }
   };
 
@@ -72,25 +71,27 @@ export default function Home() {
                   <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">
                     Chain:
                   </span>
-                  <select
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
-                    value={activeChain.id}
-                    onChange={(e) => {
-                      const selected = supportedChains.find(
-                        (chain) => chain.id === Number(e.target.value)
-                      );
-                      if (selected) {
-                        setActiveChain(selected);
-                        setActiveChainId(selected.id);
-                      }
-                    }}
-                  >
-                    {supportedChains.map((chain) => (
-                      <option key={chain.id} value={chain.id}>
-                        {chain.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="select-container">
+                    <select
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                      value={activeChain.id}
+                      onChange={(e) => {
+                        const selected = supportedChains.find(
+                          (chain) => chain.id === Number(e.target.value)
+                        );
+                        if (selected) {
+                          setActiveChain(selected);
+                          setActiveChainId(selected.id);
+                        }
+                      }}
+                    >
+                      {supportedChains.map((chain) => (
+                        <option key={chain.id} value={chain.id}>
+                          {chain.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <div className="flex items-center px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg">

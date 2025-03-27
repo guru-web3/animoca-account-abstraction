@@ -52,3 +52,36 @@ footer {
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out forwards;
 }
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: none;
+  position: relative;
+  padding-right: 2rem; /* Add padding for the arrow */
+}
+
+/* Container for the select */
+.select-container {
+  position: relative;
+}
+
+/* Custom arrow */
+.select-container::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 1rem; /* Adjust this value to move the arrow left or right */
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 6px 5px 0 5px;
+  border-color: #6b7280 transparent transparent transparent;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* For dark mode */
+.dark .select-container::after {
+  border-color: #e5e7eb transparent transparent transparent;
+}
