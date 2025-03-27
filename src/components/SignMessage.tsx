@@ -1,6 +1,6 @@
 // src/components/SignMessage.tsx
 import { useState } from "react";
-import { Hex, toHex, createPublicClient, http } from "viem";
+import { createPublicClient, http } from "viem";
 import { NexusClient } from "@biconomy/abstractjs";
 import { getChainById } from "../utils/chains";
 import { SpinnerIcon } from "./Icons/SpinnerIcon";
