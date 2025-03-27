@@ -85,3 +85,63 @@ Since the smart account is deployed as a proxy, only the pointer to the implemen
 This documentation provides an overview of how deterministic deployment and ERC-4337-based account abstraction work together to offer a consistent, secure, and upgradable smart wallet experience across different chains.
 
 For additional details or to explore the implementation further, please refer to the modules and contracts in this repository.
+
+# Biconomy Account Abstraction (AA) Demo
+
+## Overview
+The Biconomy AA Demo is a comprehensive application that showcases account abstraction features on various blockchain networks. This demo allows users to manage passkeys, interact with smart accounts, and perform transactions across multiple chains.
+
+## Features
+
+### 1. Passkey Management
+- Create new passkeys
+- Use existing passkeys
+- Install/Uninstall Passkey Module
+
+### 2. Smart Session Module
+- Install/Uninstall Smart Session Module for temporary session keys
+
+### 3. Multi-Chain Support
+- Bypass Lazy deployment which will happen during first userop/installation of validator and Deploy smart accounts on multiple chains (Base Sepolia, Ethereum Sepolia, Arbitrum Sepolia)
+- View deployment status for each chain
+- Switch between different chains
+
+### 4. Send User Op, transaction and Sign transaction
+- Send UserOp (User Operations)
+- Install Multi Chain
+- Upgrade AA (Account Abstraction)
+
+### 6. Smart Account Implementation Upgrade
+- View current implementation address
+- Upgrade/Switch implementation
+
+## Usage Guide
+
+### Passkey Management
+1. Click on Install validator to install passkey default name: `${address}_${chain}`
+3. Use "Login with passkey" if you already have one
+
+### Installing Modules
+1. Navigate to the "Modules" tab
+2. For Passkey Module:
+   - Click "Install Module" to add passkey authentication
+   - Click "Uninstall Module" to remove it
+3. For Smart Session Module:
+   - Click "Install Module" to enable temporary session keys
+   - Click "Uninstall Module" to remove it
+
+### Deploying Smart Accounts
+1. Go to the "Deployment" tab
+2. Select the chains you want to deploy on
+3. Click "Deploy Selected Accounts"
+4. Wait for the deployment process to complete
+
+### Performing Transactions
+1. Navigate to the "Transactions" tab (not shown in the provided images)
+2. Select the appropriate module for validation
+3. Enter transaction details and confirm
+
+### Upgrading Smart Account Implementation
+1. In the "Deployment" tab, find the "Upgrade/Change Smart Account Implementation" section
+2. For each deployed chain, you can see the current implementation address
+3. Click "Upgrade/Switch Implementation" to change to a different implementation version

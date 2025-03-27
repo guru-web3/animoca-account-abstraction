@@ -58,7 +58,7 @@ export default function SignMessage({ client, chainId }: SignMessageProps) {
     <>
       <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md transition-all hover:shadow-lg">
         <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
-          Sign & Verify Message
+          Sign Message
         </h3>
 
         <div className="space-y-4">
