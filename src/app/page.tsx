@@ -11,10 +11,13 @@ import { baseSepolia } from "viem/chains";
 import { supportedChains } from "../utils/chains";
 import { Hex } from "viem";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
+import { useToast } from "@/providers/ToastContex";
 
 export default function Home() {
   const { isAuthenticated, logout } = useAccountStore();
   const { clients, loading: clientsLoading } = useClientStore();
+  const { showToast } = useToast();
+
   const [activeChainId, setActiveChainId] = useState<number>(baseSepolia.id);
   const [activeTab, setActiveTab] = useState<
     "modules" | "transactions" | "deployment"
@@ -48,6 +51,8 @@ export default function Home() {
   const copyAddressToClipboard = () => {
     if (accountAddress) {
       navigator.clipboard.writeText(accountAddress as string);
+      showToast(`Address Copied successfully`, "success");
+
     }
   };
 
@@ -97,7 +102,7 @@ export default function Home() {
                   </span>
                   <button
                     onClick={copyAddressToClipboard}
-                    className="ml-2 text-gray-500 hover:text-gray-700"
+                    className="ml-2 text-gray-500"
                   >
                     <CopyIcon className="w-5 h-5" />
                   </button>

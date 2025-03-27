@@ -105,7 +105,7 @@ export default function SmartAccountUpgrader({
         hash: hash as Hex,
       });
       showToast(
-        "Passkey module installed successfully",
+        "Smart Account version/implementation switched",
         "success",
         3000,
         () => {
@@ -135,7 +135,7 @@ export default function SmartAccountUpgrader({
   return (
     <div className="mt-8 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
       <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
-        Upgrade Smart Account Implementation
+        Upgrade/Change Smart Account Implementation
       </h2>
       <div className="space-y-4">
         {supportedChains.map((chain) => {
@@ -161,7 +161,7 @@ export default function SmartAccountUpgrader({
                   disabled={!isDeployed}
                   className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isDeployed ? "Upgrade Implementation" : "Not Deployed"}
+                  {isDeployed ? "Upgrade/Switch Implementation" : "Not Deployed"}
                 </button>
               </div>
               {upgradeStatus[chain.id] && (
