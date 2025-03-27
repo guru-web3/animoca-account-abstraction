@@ -52,7 +52,6 @@ export const useModules = (
       try {
         setLoading(true);
         const isDeployed = await client.account.isDeployed();
-        console.log({isDeployed});
         if(isDeployed) {
           // This is a placeholder - replace with actual API call from Biconomy
           const moduleAddresses = await client.getInstalledValidators();
@@ -92,7 +91,7 @@ export const useModules = (
   }, [client, refreshTrigger, updateInstalledModules]);
 
   const installModule = async (moduleAddress: Hex, initData: Hex) => {
-    if (!client) return false;
+    if (!client) return null;
 
     try {
       // Replace with actual module installation logic
@@ -104,17 +103,16 @@ export const useModules = (
         },
       });
       const transactionReceipt = await waitForUserOperationReceipt(client, userOpHash);
-      console.log({transactionReceipt});
       refreshModules();
-      return true;
+      return transactionReceipt;
     } catch (error) {
       console.error("Error installing module:", error);
-      return false;
+      return null;
     }
   };
 
   const uninstallModule = async (moduleAddress: Hex) => {
-    if (!client) return false;
+    if (!client) return null;
 
     try {
       // Replace with actual module uninstallation logic
@@ -126,12 +124,11 @@ export const useModules = (
         },
       });
       const transactionReceipt = await waitForUserOperationReceipt(client, userOpHash);
-      console.log({transactionReceipt});
       refreshModules();
-      return true;
+      return transactionReceipt;
     } catch (error) {
       console.error("Error uninstalling module:", error);
-      return false;
+      return null;
     }
   };
 

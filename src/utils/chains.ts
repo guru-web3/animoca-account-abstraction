@@ -28,3 +28,8 @@ export const supportedChains = [
 export const getChainById = (chainId: number) => {
   return supportedChains.find(chain => chain.id === chainId);
 };
+
+export const openTransactionExplorer = (txHash: string, chainId: number) => {
+  const chain = supportedChains.find(chain => chain.id === chainId);
+  window.open(`${chain?.blockExplorers.default.url}/tx/${txHash}`, "blank")
+}

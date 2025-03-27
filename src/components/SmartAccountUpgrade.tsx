@@ -7,7 +7,8 @@ import {
   http,
 } from "viem";
 import { NexusClient, NexusImplementationAbi } from "@biconomy/abstractjs";
-import { supportedChains } from "../utils/chains";
+import { openTransactionExplorer, supportedChains } from "../utils/chains";
+import { useToast } from "@/providers/ToastContex";
 
 interface SmartAccountUpgraderProps {
   clients: Record<number, NexusClient>;
@@ -21,6 +22,8 @@ const IMPLEMENTATION_ADDRESSES = {
 export default function SmartAccountUpgrader({
   clients,
 }: SmartAccountUpgraderProps) {
+  const { showToast } = useToast();
+
   const [upgradeStatus, setUpgradeStatus] = useState<Record<number, string>>(
     {}
   );
@@ -60,7 +63,6 @@ export default function SmartAccountUpgrader({
   useEffect(() => {
     fetchCurrentImplementations();
   }, [fetchCurrentImplementations]); // Update dependency array
-
 
   const upgradeImplementation = async (chainId: number) => {
     const client = clients[chainId];
@@ -102,17 +104,25 @@ export default function SmartAccountUpgrader({
       const receipt = await client.waitForUserOperationReceipt({
         hash: hash as Hex,
       });
-
+      showToast(
+        "Passkey module installed successfully",
+        "success",
+        3000,
+        () => {
+          openTransactionExplorer(
+            receipt?.receipt.transactionHash || client.account.address,
+            chainId || 0
+          );
+        }
+      );
       await fetchCurrentImplementations();
       setUpgradeStatus((prev) => ({
         ...prev,
         [chainId]: `Upgraded successfully. TX: ${receipt.receipt.transactionHash}`,
       }));
     } catch (error) {
-      console.error(
-        `Error upgrading implementation on chain ${chainId}:`,
-        error
-      );
+      showToast(`Error upgrading implementation on chain ${chainId}: ${(error as Error).message || JSON.stringify(error)}`, "error");
+
       setUpgradeStatus((prev) => ({
         ...prev,
         [chainId]: `Upgrade failed: ${

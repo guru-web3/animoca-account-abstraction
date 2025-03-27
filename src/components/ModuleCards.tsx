@@ -8,6 +8,12 @@ import {
 } from "@biconomy/passkey";
 import { privateKeyToAccount } from "viem/accounts";
 import { waitForUserOperationReceipt } from "@/utils/biconomy";
+import { SpinnerIcon } from "./Icons/SpinnerIcon";
+import { PasskeyIcon } from "./Icons/PasskeyIcon";
+import { SessionModuleIcon } from "./Icons/SessionModuleIcon";
+import { useToast } from "@/providers/ToastContex";
+import { openTransactionExplorer } from "@/utils/chains";
+import { Hex } from "viem";
 
 interface ModuleCardsProps {
   client: NexusClient | null;
@@ -22,15 +28,23 @@ export default function ModuleCards({ client }: ModuleCardsProps) {
     KNOWN_MODULES,
     refreshModules,
   } = useModules(client);
+  const { showToast } = useToast();
+  const [chainId, setChainId] = useState<number>();
 
   useEffect(() => {
-    if (client) {
-      refreshModules();
+    const init = async() => {
+      if (client) {
+        const chainId = await client?.getChainId();
+        setChainId(chainId);
+        refreshModules();
+      }
     }
-  }, [client, refreshModules]);
+    init();
+  }, [client]);
 
   const [loadingPasskey, setLoadingPasskey] = useState<boolean>(false);
   const [loadingSession, setLoadingSession] = useState<boolean>(false);
+  const [isPasskeyPresent, setIsPasskeyPresent] = useState<boolean>(true);
 
   const hasPasskeyModule = installedModules.some(
     (module) => module.address === KNOWN_MODULES.PASSKEY.address
@@ -39,14 +53,44 @@ export default function ModuleCards({ client }: ModuleCardsProps) {
     (module) => module.address === KNOWN_MODULES.SESSION.address
   );
 
+  const checkIfPasskeyExistsAndCreate = async (
+    loginPasskey: boolean = false
+  ) => {
+    let cachedWebAuthnKey = localStorage.getItem(`webAuthnKey_${chainId}`);
+    if (!cachedWebAuthnKey) {
+      setIsPasskeyPresent(false);
+    }
+    if (!cachedWebAuthnKey && loginPasskey) {
+      const reloadedKey = await toWebAuthnKey({
+        passkeyName: `${client?.account.address}_${chainId}`,
+        mode: WebAuthnMode.Login,
+      });
+      cachedWebAuthnKey = JSON.stringify({
+        pubX: reloadedKey.pubX.toString(),
+        pubY: reloadedKey.pubY.toString(),
+        authenticatorId: reloadedKey.authenticatorId,
+        authenticatorIdHash: reloadedKey.authenticatorIdHash,
+      });
+      localStorage.setItem(`webAuthnKey_${chainId}`, cachedWebAuthnKey);
+      setIsPasskeyPresent(true);
+      refreshModules();
+    }
+  };
+
+  useEffect(() => {
+    if (hasPasskeyModule && chainId) {
+      checkIfPasskeyExistsAndCreate();
+    }
+  }, [hasPasskeyModule, chainId]);
+
   const registerPasskey = async () => {
     try {
-      if(!client?.account.address) {
+      if (!client?.account.address) {
         console.error("Account address is needed");
-        return ;
+        return;
       }
       const webAuthnKey = await toWebAuthnKey({
-        passkeyName: client?.account.address,
+        passkeyName: `${client?.account.address}_${chainId}`,
         mode: WebAuthnMode.Register,
       });
 
@@ -62,54 +106,76 @@ export default function ModuleCards({ client }: ModuleCardsProps) {
         authenticatorId: webAuthnKey.authenticatorId,
         authenticatorIdHash: webAuthnKey.authenticatorIdHash,
       };
-      await installModule(
+      const txReceipt = await installModule(
         KNOWN_MODULES.PASSKEY.address,
         passkeyValidator?.initData || "0x"
       );
+      console.log({txReceipt});
 
-      const chainId = await client?.getChainId();
       // store webAuthnKey in localStorage
-      localStorage.setItem(`webAuthnKey_${chainId}`, JSON.stringify(formattedWebAuthnKey));
-
-      // toast.success(`Using passkey for ${passkeyName}`, {
-      //   position: "bottom-right",
-      // });
+      localStorage.setItem(
+        `webAuthnKey_${chainId}`,
+        JSON.stringify(formattedWebAuthnKey)
+      );
+      showToast("Passkey module installed successfully", "success", 3000, () => {
+        openTransactionExplorer(txReceipt?.receipt.transactionHash || client.account.address, chainId || 0)
+      });
 
       // reInstallPasskeyValidator(passkeyValidator?.initData);
     } catch (error) {
       console.error("Error registering passkey:", error);
+      showToast(`Error registering passkey ${(error as Error).message || JSON.stringify(error)}`, "error");
     } finally {
       // setIsLoading((prev) => ({ ...prev, register: false }));
     }
   };
 
-  const installSmartSessionModule = async() => {
-    if(!client || !client.account) {
-      throw new Error("client not initialized")
+  const installSmartSessionModule = async () => {
+    try {
+      if (!client || !client.account) {
+        throw new Error("client not initialized");
+      } else if(!process.env.NEXT_PUBLIC_SESSION_PRIVATE_KEY) {
+        throw new Error("SESSION_PRIVATE_KEY not initialized");
+      }
+  
+      const sessionKey = privateKeyToAccount(
+        process.env.NEXT_PUBLIC_SESSION_PRIVATE_KEY as Hex
+      );
+      const sessionsModule = toSmartSessionsValidator({
+        account: client.account,
+        signer: sessionKey, // The session key granted permission
+      });
+      // Install the smart sessions module on the Nexus client's smart contract account
+      const hash = await client.installModule({
+        module: sessionsModule.moduleInitData,
+      });
+      localStorage.setItem(
+        "sessionModule",
+        JSON.stringify(sessionsModule?.moduleData)
+      );
+      const transactionReceipt = await waitForUserOperationReceipt(client, hash);
+      showToast("Session module installed successfully", "success", 3000, () => {
+        openTransactionExplorer(transactionReceipt?.receipt.transactionHash || client.account.address, chainId || 0)
+      });
+      refreshModules();
+    } catch(error) {
+      console.error("Error installing session module:", error);
+      showToast(`Error installing session module ${(error as Error).message || JSON.stringify(error)}`, "error");
     }
-    
-    const sessionKey = privateKeyToAccount("0x6f13f1ce2e98994e4bec67a9731b86acf08eda789dd686c8b77deb0f2155f396");;
-    const sessionsModule = toSmartSessionsValidator({
-      account: client.account,
-      signer: sessionKey, // The session key granted permission
-    });
-    // Install the smart sessions module on the Nexus client's smart contract account
-    const hash = await client.installModule({
-      module: sessionsModule.moduleInitData
-    })
-    localStorage.setItem("sessionModule", JSON.stringify(sessionsModule?.moduleData));
-    const transactionReceipt = await waitForUserOperationReceipt(client, hash);
-    console.log({transactionReceipt});
-    refreshModules();
-  }
+  };
 
   const handlePasskeyModule = async () => {
     if (!client) return;
 
     setLoadingPasskey(true);
     try {
-      if (hasPasskeyModule) {
-        await uninstallModule(KNOWN_MODULES.PASSKEY.address);
+      if (hasPasskeyModule && !isPasskeyPresent) {
+        await checkIfPasskeyExistsAndCreate(true);
+      } else if (hasPasskeyModule) {
+        const receipt = await uninstallModule(KNOWN_MODULES.PASSKEY.address);
+        showToast("Passkey module Uninstalled successfully", "success", 3000, () => {
+          openTransactionExplorer(receipt?.receipt.transactionHash || client.account.address, chainId || 0)
+        });
       } else {
         await registerPasskey();
       }
@@ -126,7 +192,10 @@ export default function ModuleCards({ client }: ModuleCardsProps) {
     setLoadingSession(true);
     try {
       if (hasSessionModule) {
-        await uninstallModule(KNOWN_MODULES.SESSION.address);
+        const receipt = await uninstallModule(KNOWN_MODULES.SESSION.address);
+        showToast("Passkey module Uninstalled successfully", "success", 3000, () => {
+          openTransactionExplorer(receipt?.receipt.transactionHash || client.account.address, chainId || 0)
+        });
       } else {
         await installSmartSessionModule();
       }
@@ -148,23 +217,10 @@ export default function ModuleCards({ client }: ModuleCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
       {/* passkey module */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md transition-all hover:shadow-lg">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md transition-transform duration-300 ease-in-out hover:scale-105">
         <div className="flex items-center mb-4">
           <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-full mr-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-blue-600 dark:text-blue-300"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
-            </svg>
+            <PasskeyIcon className="h-6 w-6 text-blue-600 dark:text-blue-300" />
           </div>
           <h3 className="text-xl font-bold text-gray-800 dark:text-white">
             Passkey Module
@@ -179,65 +235,35 @@ export default function ModuleCards({ client }: ModuleCardsProps) {
 
         <button
           onClick={handlePasskeyModule}
-          disabled={
-            loadingPasskey || !client
-          }
-          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-            hasPasskeyModule
+          disabled={loadingPasskey || !client}
+          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+            !isPasskeyPresent
+              ? "bg-green-600 hover:bg-green-700 text-white focus:ring-green-500"
+              : hasPasskeyModule
               ? "bg-red-600 hover:bg-red-700 text-white focus:ring-red-500"
               : "bg-green-600 hover:bg-green-700 text-white focus:ring-green-500"
           } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           {loadingPasskey ? (
             <span className="flex items-center justify-center">
-              <svg
-                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
+              <SpinnerIcon className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
               Processing...
             </span>
+          ) : !isPasskeyPresent ? (
+            "Login With Passkey"
           ) : hasPasskeyModule ? (
             "Uninstall Module"
           ) : (
-            <>Install Module</>
+            "Install Module"
           )}
         </button>
       </div>
 
       {/* session module */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md transition-all hover:shadow-lg">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md transition-transform duration-300 ease-in-out hover:scale-105">
         <div className="flex items-center mb-4">
           <div className="bg-purple-100 dark:bg-purple-900 p-3 rounded-full mr-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-purple-600 dark:text-purple-300"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <SessionModuleIcon className="h-6 w-6 text-purple-600 dark:text-purple-300" />
           </div>
           <h3 className="text-xl font-bold text-gray-800 dark:text-white">
             Smart Session Module
@@ -261,26 +287,7 @@ export default function ModuleCards({ client }: ModuleCardsProps) {
         >
           {loadingSession ? (
             <span className="flex items-center justify-center">
-              <svg
-                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
+              <SpinnerIcon className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
               Processing...
             </span>
           ) : hasSessionModule ? (
@@ -290,7 +297,6 @@ export default function ModuleCards({ client }: ModuleCardsProps) {
           )}
         </button>
       </div>
-
     </div>
   );
 }

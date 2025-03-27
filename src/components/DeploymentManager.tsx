@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAccountStore } from "../store/accountStore";
 import { ClientsMap, DeploymentStatus } from "../types";
-import { supportedChains } from "../utils/chains";
+import { openTransactionExplorer, supportedChains } from "../utils/chains";
 import { zeroAddress } from "viem";
 import SmartAccountUpgrader from "./SmartAccountUpgrade";
+import { SpinnerIcon } from "./Icons/SpinnerIcon";
+import { useToast } from "@/providers/ToastContex";
 
 interface DeploymentManagerProps {
   clients: ClientsMap;
@@ -14,6 +16,7 @@ export default function DeploymentManager({ clients }: DeploymentManagerProps) {
   const [selectedChains, setSelectedChains] = useState<number[]>([]);
   const [deployLoading, setDeployLoading] = useState<boolean>(false);
   const [deploymentStatus, setDeploymentStatus] = useState<string>("");
+  const { showToast } = useToast();
 
   const toggleChainSelection = (chainId: number) => {
     setSelectedChains((prev) =>
@@ -61,9 +64,10 @@ export default function DeploymentManager({ clients }: DeploymentManagerProps) {
         // Wait for transaction receipt
         const receipt = await client.waitForUserOperationReceipt({ hash: tx });
 
-        console.log(
-          `Account deployed on chain ${chainId}. Transaction hash: ${receipt.receipt.transactionHash}`
-        );
+        showToast(`Account deployed on chain ${chainId}. Transaction hash successfully`, "success", 3000, () => {
+          openTransactionExplorer(receipt?.receipt.transactionHash || client.account.address, chainId || 0)
+        });
+        
 
         // Update deployment status
         const updatedDeployedChains = [...deployedChains];
@@ -88,7 +92,7 @@ export default function DeploymentManager({ clients }: DeploymentManagerProps) {
         }
         updateDeployedChains(updatedDeployedChains);
       } catch (error) {
-        console.error(`Error deploying on chain ${chainId}:`, error);
+        showToast(`Error deploying on chain ${chainId} ${(error as Error).message || JSON.stringify(error)}`, "error");
       }
     }
 
@@ -249,26 +253,7 @@ export default function DeploymentManager({ clients }: DeploymentManagerProps) {
           >
             {deployLoading ? (
               <span className="flex items-center justify-center">
-                <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
+                <SpinnerIcon className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
                 Deploying...
               </span>
             ) : (
