@@ -53,7 +53,6 @@ export const useModules = (
         setLoading(true);
         const isDeployed = await client.account.isDeployed();
         if(isDeployed) {
-          // This is a placeholder - replace with actual API call from Biconomy
           const moduleAddresses = await client.getInstalledValidators();
           const flatArray = moduleAddresses?.flat();
           const modules: Module[] = flatArray.map((address) => {

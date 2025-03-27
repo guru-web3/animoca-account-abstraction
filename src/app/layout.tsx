@@ -7,8 +7,8 @@ import { ToastProvider } from "@/providers/ToastContex";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Biconomy AA Demo",
-  description: "Account Abstraction demo using Biconomy",
+  title: "Animoca AA Demo",
+  description: "Account Abstraction demo using Animoca",
 };
 
 export default function RootLayout({
